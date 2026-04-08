@@ -2,6 +2,8 @@
 #include "mlx/c/error.h"
 #include "mlx/c/private/mlx.h"
 #include "mlx/export.h"
+#include "mlx/graph_utils.h"
+#include <fstream>
 
 extern "C" int mlx_export_function(
     const char* file,
@@ -129,6 +131,21 @@ extern "C" int mlx_imported_function_apply_kwargs(
         *res,
         mlx_imported_function_get_(xfunc)(
             mlx_vector_array_get_(args), mlx_map_string_to_array_get_(kwargs)));
+  } catch (std::exception& e) {
+    mlx_error(e.what());
+    return 1;
+  }
+  return 0;
+}
+
+extern "C" int mlx_export_to_dot_file(const char* path, mlx_array output) {
+  try {
+    std::ofstream out(path);
+    if (!out.is_open()) {
+      mlx_error("failed to open file");
+      return 1;
+    }
+    mlx::core::export_to_dot(out, mlx_array_get_(output));
   } catch (std::exception& e) {
     mlx_error(e.what());
     return 1;
